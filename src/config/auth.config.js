@@ -1,0 +1,1 @@
+export const config = { secret: "myapp-secret-key" };
