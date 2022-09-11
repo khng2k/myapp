@@ -1,12 +1,36 @@
 import { User } from '../models/user.model.js';
-import { Role } from '../models/role.model.js';
-import { config } from '../config/auth.config.js';
+import { Cart } from '../models/cart.model.js';
+import dotenv from "dotenv";
 import jwt from 'jsonwebtoken';
 import pkg from 'sha2';
 const { sha256 } = pkg;
 
+dotenv.config()
+
+
+// create Shopping Cart
+const createCart = id => {
+    const cart = new Cart({
+        idUser: id,
+        shoppingCart: []
+    })
+    cart.save((err) => {
+        return (req, res) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            res.send({
+                code : 0,
+                message: `Create Shopping Cart of ${id}`
+            })
+        }
+    })
+}
+
+// sign up
 export const signUp = (req, res) => {
-    const user = new User({
+    const newNser = new User({
         name: req.body.name,
         phone: req.body.phone,
         username: req.body.username,
@@ -14,40 +38,20 @@ export const signUp = (req, res) => {
         roles: req.body.roles
     });
     
-    user.save((err, user) => {
+    newNser.save((err, user) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
         }
-
-        if (req.body.roles) {
-            Role.find({
-                name: { $in: req.body.roles }
-            }, (err, roles) => {
-                if (err) {
-                    res.status(500).send({ message: err });
-                    return;
-                }
-
-                // user.roles = roles.map(role => role._id);
-                user.save((err) => {
-                    if (err) {
-                        res.status(500).send({ message: err });
-                        return;
-                    }
-                    res.send({
-                        code : 0,
-                        message: "Đăng ký thành công"
-                    })
-                })
-            })
-        } else {
-            res.send({message: "Chưa thêm quyền"});
-            return;
-        }
+        res.send({
+            code : 0,
+            message: "Đăng ký thành công"
+        })
+        createCart(user._id);
     })
 }
 
+// sign in
 export const signIn = (req,res) => {
     User.findOne({ username: req.body.username }).exec((err,user) => {
         if (err) {
@@ -66,8 +70,8 @@ export const signIn = (req,res) => {
             })
         }
 
-        const token = jwt.sign({id: user.id}, config.secret, {
-            expiresIn: 43200
+        const token = jwt.sign({id: user.id}, process.env.SECRET_ACCESS_TOKEN, {
+            expiresIn: 30000
         })
         res.status(200).send({
             id: user._id,

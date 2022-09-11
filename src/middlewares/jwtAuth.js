@@ -1,16 +1,24 @@
 import jwt from "jsonwebtoken";
-import { config } from "../config/auth.config.js";
+import dotenv from "dotenv";
 import { User } from "../models/user.model.js";
 import { Role } from "../models/role.model.js";
 
-verifyToken = (req,res,next) => {
-    let token = req.headers["x-access-token"];
+
+// verify Access Token
+const verifyToken = (req,res,next) => {
+    const authHeader = req.headers["authorization"];
+
+    if (!authHeader) {
+        return res.status(403).send({message: "You need sign in"});
+    }
+
+    const token = authHeader.split(' ')[1]
 
     if (!token) {
         return res.status(403).send({message: "Không có token"});
     }
 
-    jwt.verify(token, config.secret, (err,decoded) => {
+    jwt.verify(token, process.env.SECRET_ACCESS_TOKEN, (err,decoded) => {
         if (err) {
             return res.status(401).send({message: "Không có quyền truy cập"});
         }
@@ -19,7 +27,7 @@ verifyToken = (req,res,next) => {
     })
 }
 
-isOwner = (req,res,next) => {
+const isOwner = (req,res,next) => {
     User.findById(req.id).exec((err,user)=>{
         if(err){
             res.status(500).send({message: err});
@@ -43,7 +51,7 @@ isOwner = (req,res,next) => {
     })
 }
 
-isAdmin = (req,res,next) => {
+const isAdmin = (req,res,next) => {
     User.findById(req.id).exec((err,user)=>{
         if(err){
             res.status(500).send({message: err});
