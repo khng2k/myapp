@@ -9,6 +9,6 @@ router.get('/', getAllCategories);
 
 router.get('/:name', getCategoryByName);
 
-router.post('/api/insert-category', jwtAuth.verifyToken, [checkCategoryAvaiable], insertCategory);
+router.post('/api/insert-category', [jwtAuth.verifyToken, jwtAuth.authPage(['mod', 'admin'])], [checkCategoryAvaiable], insertCategory);
 
 export default router;

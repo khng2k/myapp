@@ -27,56 +27,36 @@ const verifyToken = (req,res,next) => {
     })
 }
 
-const isOwner = (req,res,next) => {
-    User.findById(req.id).exec((err,user)=>{
-        if(err){
-            res.status(500).send({message: err});
-            return;
-        }
-
-        Role.find({_id: {$in: user.roles} }, (err,roles) => {
-            if(err) {
+const authPage = listRoleAccess => {
+    return (req,res,next) => {
+        User.findById(req.userId).exec((err,user)=>{
+            if(err){
                 res.status(500).send({message: err});
-                return
-            }
-
-            if(roles.name === "owner"){
-                next();
                 return;
             }
-
-            res.status(403).send({message: "Cần Quyền Owner"});
-            return;
+    
+            if (!user) {
+                res.status(500).send({message: "lỗi Server"});
+            }
+    
+            if(!listRoleAccess.includes(user.roles)){
+                return res.status(401).send({message: "Không có quyền truy cập"});
+            }
+    
+            next();
         })
-    })
+    }
 }
 
-const isAdmin = (req,res,next) => {
-    User.findById(req.id).exec((err,user)=>{
-        if(err){
-            res.status(500).send({message: err});
-            return;
-        }
-
-        Role.find({_id: {$in: user.roles} }, (err,roles) => {
-            if(err) {
-                res.status(500).send({message: err});
-                return
-            }
-
-            if(roles.name === "admin"){
-                next();
-                return;
-            }
-
-            res.status(403).send({message: "Cần Quyền Admin"});
-            return;
-        })
-    })
+const authInfoUser = (req, res, next) => {
+    if (req.userId != req.params.id) {
+        return res.status(401).send({message: "Không có quyền truy cập"});
+    } 
+    next();    
 }
 
 export const jwtAuth = {
     verifyToken,
-    isOwner,
-    isAdmin
+    authInfoUser,
+    authPage
 };

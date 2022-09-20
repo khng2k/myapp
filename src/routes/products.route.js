@@ -11,7 +11,11 @@ router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
 
 router.post(
-    '/api/insert-product', jwtAuth.verifyToken, 
+    '/api/insert-product',
+    [
+        jwtAuth.verifyToken, 
+        jwtAuth.authPage(['mod', 'admin'])
+    ], 
     [
         checkProduct.checkInputProduct, 
         checkProduct.checkBrandAvaiableInProduct, 

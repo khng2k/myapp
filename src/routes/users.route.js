@@ -1,17 +1,18 @@
 import express from "express";
 import { getAllUsers, getUserById, shoppingCart } from "../controllers/users.controller.js";
 import { checkShoppingCart } from "../middlewares/index.js";
+import { jwtAuth } from "../middlewares/jwtAuth.js";
 
 const router = express.Router();
 
-router.get('/', getAllUsers);
+router.get('/', [jwtAuth.verifyToken, jwtAuth.authPage(['mod', 'admin'])], getAllUsers);
 
-router.get('/:id', getUserById);
+router.get('/:id', [jwtAuth.verifyToken, jwtAuth.authInfoUser], getUserById);
 
-router.get('/:id/api/shopping-cart', shoppingCart.getProductsInCart);
+router.get('/:id/api/shopping-cart', [jwtAuth.verifyToken, jwtAuth.authInfoUser], shoppingCart.getProductsInCart);
 
 router.post(
-    '/:id/api/shopping-cart', 
+    '/:id/api/shopping-cart', [jwtAuth.verifyToken, jwtAuth.authInfoUser],
     [
         checkShoppingCart.checkProductAvaiableInCart, 
         checkShoppingCart.checkQtyProductToCart
@@ -19,8 +20,8 @@ router.post(
     shoppingCart.addProductToCart
 );
 
-router.patch('/:id/api/shopping-cart', checkShoppingCart.checkQtyProductToCart, shoppingCart.updateProductInCart);
+router.patch('/:id/api/shopping-cart', [jwtAuth.verifyToken, jwtAuth.authInfoUser], checkShoppingCart.checkQtyProductToCart, shoppingCart.updateProductInCart);
 
-router.delete('/:id/api/shopping-cart', shoppingCart.removeProductInCart);
+router.delete('/:id/api/shopping-cart', [jwtAuth.verifyToken, jwtAuth.authInfoUser], shoppingCart.removeProductInCart);
 
 export default router;

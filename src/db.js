@@ -44,7 +44,7 @@ const Roles = db.role;
 const Users = db.user;
 
 //Initial Run to Create Roles
-function initial() {
+async function initial() {
     Roles.estimatedDocumentCount((err, count) => {
         if (!err && count === 0) {
             new Roles({
